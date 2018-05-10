@@ -1,12 +1,28 @@
 package Interfaz;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.EventQueue;
-import java.awt.TextField;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Date;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 
 import blockChain.BlockChainPrueba;
@@ -14,30 +30,13 @@ import blockChain.Bloque;
 import blockChain.Monedero;
 import blockChain.StringUtil;
 import blockChain.Transaccion;
-
-import javax.swing.JLabel;
-import javax.swing.JTable;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
-import javax.swing.text.TableView.TableRow;
-import javax.swing.JScrollBar;
+import java.awt.FlowLayout;
 import javax.swing.JScrollPane;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JTextField;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Rectangle;
-import java.awt.event.ActionListener;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.spec.InvalidKeySpecException;
-import java.awt.event.ActionEvent;
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 
 public class PantallaMonedero extends JFrame {
 	/**
@@ -51,6 +50,8 @@ public class PantallaMonedero extends JFrame {
 	private JLabel lblBalance;
 	private JLabel lblEur;
 	private JTextField tfDireccion;
+	private JTable table;
+	private DefaultTableModel tm;
 
 	/**
 	 * Create the frame.
@@ -81,7 +82,7 @@ public class PantallaMonedero extends JFrame {
 		panel.setLayout(null);
 
 		JLabel lblShowBalance = new JLabel("BALANCE");
-		lblShowBalance.setBounds(28, 58, 79, 14);
+		lblShowBalance.setBounds(28, 81, 79, 14);
 		panel.add(lblShowBalance);
 
 		lblBalance = new JLabel("CBC");
@@ -89,7 +90,7 @@ public class PantallaMonedero extends JFrame {
 		panel.add(lblBalance);
 
 		JLabel lblNewLabel_1 = new JLabel("EQUIVALEN A:");
-		lblNewLabel_1.setBounds(226, 58, 98, 14);
+		lblNewLabel_1.setBounds(226, 81, 98, 14);
 		panel.add(lblNewLabel_1);
 
 		lblEur = new JLabel("EUR");
@@ -131,7 +132,15 @@ public class PantallaMonedero extends JFrame {
 								JOptionPane.showMessageDialog(contentPane, "La transacción se realizó correctamente");
 								Bloque b = new Bloque(BlockChainPrueba.blockchain.get(BlockChainPrueba.blockchain.size()-1).hash);
 								b.anadirTransaccion(t);
-								BlockChainPrueba.anadirBloque(b);
+								try {
+									BlockChainPrueba.anadirBloque(b);
+								} catch (FileNotFoundException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 								
 							}
 
@@ -188,6 +197,26 @@ public class PantallaMonedero extends JFrame {
 		lblNewLabel_2.setBounds(29, 25, 160, 24);
 		panel_1.add(lblNewLabel_2);
 		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(29, 60, 730, 299);
+		panel_1.add(scrollPane);
+		
+		table = new JTable();
+		tm = new DefaultTableModel(
+				new Object[][] {
+				},
+				new String[] {
+					"Cantidad", "De", "Para", "Id Transaccion", "Fecha"
+				});
+		table.setModel(tm);
+		table.getColumnModel().getColumn(0).setPreferredWidth(114);
+		table.getColumnModel().getColumn(1).setPreferredWidth(110);
+		table.getColumnModel().getColumn(2).setPreferredWidth(89);
+		table.getColumnModel().getColumn(3).setPreferredWidth(107);
+		table.getColumnModel().getColumn(4).setPreferredWidth(103);
+		scrollPane.setViewportView(table);
+		
+		
 		tfDireccion.setText(StringUtil.getStringDeclave(monedero.clavePublica));
 		UIManager.setLookAndFeel(new com.jtattoo.plaf.mcwin.McWinLookAndFeel());
 	}
@@ -199,16 +228,42 @@ public class PantallaMonedero extends JFrame {
 		float balance = monedero.getBalance();
 		lblBalance.setText(lblBalance.getText() + "    " + String.valueOf(balance));
 		lblEur.setText(lblEur.getText() + "    " + String.valueOf(balance * 89.54));
+		cargarLista();
+		
+		
+	}
+	private void anadirTransaccion(Transaccion t) {
+		String text;
+		if (t.emisor.equals(monedero.clavePublica)) {
+			text = "<html><font color=\"red\">Enviado &thinsp &thinsp &thinsp &thinsp</font>"+String.valueOf(t.valor)+"  cbc</html>";
+		}else {
+			text = "<html><font color=\"green\">Recibido &thinsp &thinsp &thinsp</font>"+String.valueOf(t.valor)+"  cbc</html>";
+		}
+		
+		Object [] data = {text, StringUtil.getStringDeclave(t.emisor), StringUtil.getStringDeclave(t.receptor), t.id, new Date(t.timestamp).toLocaleString()};
+		tm.addRow(data);
+	}
+	private void cargarLista() {
+		DefaultTableModel dm = (DefaultTableModel)table.getModel();
+		while(dm.getRowCount() > 0)
+		{
+		    dm.removeRow(0);
+		}
 		for (Bloque bloque : BlockChainPrueba.blockchain) {
 			for (Transaccion t : bloque.transacciones) {
 				if (t.emisor.equals(monedero.clavePublica)||t.receptor.equals(monedero.clavePublica)) {
-					
+					anadirTransaccion(t);
 				}
 				
 			}
 			
 		}
 		
+		
+		
+		
+		
+		
+		
 	}
-	
 }

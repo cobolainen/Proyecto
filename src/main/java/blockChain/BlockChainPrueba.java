@@ -1,32 +1,20 @@
 package blockChain;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.security.Security;
 import java.util.ArrayList;
 //import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
-//import com.google.gson.GsonBuilder;
-import java.util.Map;
-
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.filechooser.FileSystemView;
+import java.util.Properties;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-public class BlockChainPrueba implements Serializable{
+public class BlockChainPrueba implements Serializable {
 
 	/**
 	 * 
@@ -37,8 +25,8 @@ public class BlockChainPrueba implements Serializable{
 	public static ArrayList<Transaccion> transaccionesSinMinar = new ArrayList<Transaccion>();
 	public static int dificultad = 3;
 	public static float transaccionMinima = 0.1f;
+	public static transient ObjectOutputStream oos;
 	Monedero coinbase = new Monedero();
-	
 
 	public static void main(String[] args) throws ClassNotFoundException, FileNotFoundException, IOException {
 		// se añaden los bloques al arraylist blockchain:
@@ -88,9 +76,12 @@ public class BlockChainPrueba implements Serializable{
 		System.out.println("\nEl balance del monedero A es: " + monederoA.getBalance());
 		System.out.println("El balance del monedero B es: " + monederoB.getBalance());
 		anadirBloque(bloque3);
-		ObjectOutputStream oosbl = new ObjectOutputStream(new FileOutputStream("C:\\Users\\ccobos\\Desktop\\blockchain.blockchain"));
-		ObjectOutputStream oosa = new ObjectOutputStream(new FileOutputStream("C:\\Users\\ccobos\\Desktop\\monederoA.wallet"));
-		ObjectOutputStream oosb = new ObjectOutputStream(new FileOutputStream("C:\\Users\\ccobos\\Desktop\\monederoB.wallet"));
+		ObjectOutputStream oosbl = new ObjectOutputStream(
+				new FileOutputStream("C:\\Users\\cccob\\Desktop\\blockchain.blockchain"));
+		ObjectOutputStream oosa = new ObjectOutputStream(
+				new FileOutputStream("C:\\Users\\cccob\\Desktop\\monederoA.wallet"));
+		ObjectOutputStream oosb = new ObjectOutputStream(
+				new FileOutputStream("C:\\Users\\cccob\\Desktop\\monederoB.wallet"));
 		oosbl.writeObject(new BlockChainPrueba());
 		oosa.writeObject(monederoA);
 		oosb.writeObject(monederoB);
@@ -182,12 +173,20 @@ public class BlockChainPrueba implements Serializable{
 		return true;
 	}
 
-	public static void anadirBloque(Bloque nuevoBloque) {
+	public static void anadirBloque(Bloque nuevoBloque) throws FileNotFoundException, IOException {
 		nuevoBloque.minarBloque(dificultad);
 		blockchain.add(nuevoBloque);
+		if (oos == null) {
+			Properties prop = new Properties();
+			FileInputStream input = new FileInputStream("config.properties");
+			prop.load(input);
+			oos = new ObjectOutputStream(new FileOutputStream(prop.getProperty("blockchain"), false));
+		}
+		oos.writeObject(new BlockChainPrueba());
+
 	}
-	private void writeObject(ObjectOutputStream stream)
-            throws IOException {
+
+	private void writeObject(ObjectOutputStream stream) throws IOException {
 		stream.writeObject(blockchain);
 		stream.writeObject(UTXOs);
 		stream.writeObject(transaccionesSinMinar);
@@ -195,13 +194,21 @@ public class BlockChainPrueba implements Serializable{
 		stream.writeFloat(transaccionMinima);
 		stream.writeObject(coinbase);
 	}
-	 private void readObject(java.io.ObjectInputStream stream)
-	            throws IOException, ClassNotFoundException {
-		 blockchain = (ArrayList<Bloque>) stream.readObject();
-		 UTXOs = (HashMap<String, OutputTransaccion>) stream.readObject();
-		 transaccionesSinMinar = (ArrayList<Transaccion>) stream.readObject();
-		 dificultad = stream.readInt();
-		 transaccionMinima = stream.readFloat();
-		 coinbase = (Monedero) stream.readObject();
-	 }
+
+	private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+		blockchain = (ArrayList<Bloque>) stream.readObject();
+		UTXOs = (HashMap<String, OutputTransaccion>) stream.readObject();
+		transaccionesSinMinar = (ArrayList<Transaccion>) stream.readObject();
+		dificultad = stream.readInt();
+		transaccionMinima = stream.readFloat();
+		coinbase = (Monedero) stream.readObject();
+	}
+
+	public BlockChainPrueba() throws FileNotFoundException, IOException {
+		Properties prop = new Properties();
+		FileInputStream input = new FileInputStream("config.properties");
+		prop.load(input);
+		oos = new ObjectOutputStream(new FileOutputStream(prop.getProperty("blockchain"), false));
+
+	}
 }

@@ -130,17 +130,7 @@ public class PantallaMonedero extends JFrame {
 								Transaccion t = monedero.enviarFondos(StringUtil.getPublicKeyDeString(textField.getText()),
 										Float.parseFloat(textField2.getText()));
 								JOptionPane.showMessageDialog(contentPane, "La transacción se realizó correctamente");
-								Bloque b = new Bloque(BlockChainPrueba.blockchain.get(BlockChainPrueba.blockchain.size()-1).hash);
-								b.anadirTransaccion(t);
-								try {
-									BlockChainPrueba.anadirBloque(b);
-								} catch (FileNotFoundException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
+								BlockChainPrueba.transaccionesSinMinar.add(t);
 								
 							}
 
@@ -251,6 +241,7 @@ public class PantallaMonedero extends JFrame {
 		}
 		for (Bloque bloque : BlockChainPrueba.blockchain) {
 			for (Transaccion t : bloque.transacciones) {
+				
 				if (t.emisor.equals(monedero.clavePublica)||t.receptor.equals(monedero.clavePublica)) {
 					anadirTransaccion(t);
 				}

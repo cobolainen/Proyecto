@@ -6,11 +6,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 //import java.util.Base64;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -22,11 +28,11 @@ public class BlockChainPrueba implements Serializable {
 	private static final long serialVersionUID = 3409930309299685635L;
 	public static ArrayList<Bloque> blockchain = new ArrayList<Bloque>();
 	public static HashMap<String, OutputTransaccion> UTXOs = new HashMap<String, OutputTransaccion>();
-	public static ArrayList<Transaccion> transaccionesSinMinar = new ArrayList<Transaccion>();
-	public static int dificultad = 3;
+	public static Queue<Transaccion> transaccionesSinMinar = new ConcurrentLinkedQueue<Transaccion>();
+	public static int dificultad = 5;
 	public static float transaccionMinima = 0.1f;
 	public static transient ObjectOutputStream oos;
-	Monedero coinbase = new Monedero();
+	public static Monedero coinbase = new Monedero();
 
 	public static void main(String[] args) throws ClassNotFoundException, FileNotFoundException, IOException {
 		// se añaden los bloques al arraylist blockchain:
@@ -77,11 +83,11 @@ public class BlockChainPrueba implements Serializable {
 		System.out.println("El balance del monedero B es: " + monederoB.getBalance());
 		anadirBloque(bloque3);
 		ObjectOutputStream oosbl = new ObjectOutputStream(
-				new FileOutputStream("C:\\Users\\cccob\\Desktop\\blockchain.blockchain"));
+				new FileOutputStream("C:\\Users\\ccobos\\Desktop\\blockchain.blockchain"));
 		ObjectOutputStream oosa = new ObjectOutputStream(
-				new FileOutputStream("C:\\Users\\cccob\\Desktop\\monederoA.wallet"));
+				new FileOutputStream("C:\\Users\\ccobos\\Desktop\\monederoA.wallet"));
 		ObjectOutputStream oosb = new ObjectOutputStream(
-				new FileOutputStream("C:\\Users\\cccob\\Desktop\\monederoB.wallet"));
+				new FileOutputStream("C:\\Users\\ccobos\\Desktop\\monederoB.wallet"));
 		oosbl.writeObject(new BlockChainPrueba());
 		oosa.writeObject(monederoA);
 		oosb.writeObject(monederoB);
@@ -198,7 +204,7 @@ public class BlockChainPrueba implements Serializable {
 	private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
 		blockchain = (ArrayList<Bloque>) stream.readObject();
 		UTXOs = (HashMap<String, OutputTransaccion>) stream.readObject();
-		transaccionesSinMinar = (ArrayList<Transaccion>) stream.readObject();
+		transaccionesSinMinar = (ConcurrentLinkedQueue<Transaccion>) stream.readObject();
 		dificultad = stream.readInt();
 		transaccionMinima = stream.readFloat();
 		coinbase = (Monedero) stream.readObject();
@@ -210,5 +216,14 @@ public class BlockChainPrueba implements Serializable {
 		prop.load(input);
 		oos = new ObjectOutputStream(new FileOutputStream(prop.getProperty("blockchain"), false));
 
+	}
+
+	public static void darRecompensa(String clave)
+			throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
+ArrayList<InputTransaccion> inputs = new ArrayList<InputTransaccion>();
+		
+		
+		Transaccion t = new Transaccion(coinbase.clavePublica, StringUtil.getPublicKeyDeString(clave) , 12, inputs);
+		transaccionesSinMinar.add(t);
 	}
 }

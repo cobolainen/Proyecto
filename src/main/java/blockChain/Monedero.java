@@ -50,7 +50,7 @@ public class Monedero implements Serializable{
 	       
 	        
 		}catch(Exception e) {
-			throw new RuntimeException(e);
+			e.printStackTrace();
 		}
 	}
 	

@@ -23,6 +23,7 @@ public class Transaccion implements Serializable{
 	
 	public ArrayList<InputTransaccion> inputs = new ArrayList<InputTransaccion>();
 	public ArrayList<OutputTransaccion> outputs = new ArrayList<OutputTransaccion>();
+	public boolean esRecompensa = false;
 	
 	private static int secuencia = 0; //cuenta de transacciones generadas
 	
@@ -133,6 +134,7 @@ public class Transaccion implements Serializable{
 		stream.writeObject(firma);
 		stream.writeObject(inputs);
 		stream.writeObject(outputs);
+		stream.writeBoolean(esRecompensa);
 	}
 	private void readObject(java.io.ObjectInputStream stream) throws ClassNotFoundException, IOException, InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
 		KeyFactory fact = KeyFactory.getInstance("ECDSA", "BC");
@@ -143,5 +145,6 @@ public class Transaccion implements Serializable{
 		firma = (byte[]) stream.readObject();
 		inputs = (ArrayList<InputTransaccion>) stream.readObject();
 		outputs = (ArrayList<OutputTransaccion>) stream.readObject();
+		esRecompensa = stream.readBoolean();
 	}
 }

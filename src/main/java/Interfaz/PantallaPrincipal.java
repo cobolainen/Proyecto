@@ -123,7 +123,7 @@ public class PantallaPrincipal extends JFrame {
 				}
 			}
 		});
-		btnNewButton.setBounds(175, 140, 130, 23);
+		btnNewButton.setBounds(174, 104, 130, 23);
 		contentPane.add(btnNewButton);
 
 		JButton btnNewButton_1 = new JButton("Cargar Monedero");
@@ -159,12 +159,21 @@ public class PantallaPrincipal extends JFrame {
 				}
 			}
 		});
-		btnNewButton_1.setBounds(175, 73, 130, 23);
+		btnNewButton_1.setBounds(174, 37, 130, 23);
 		contentPane.add(btnNewButton_1);
 
 		JButton btnSalir = new JButton("Salir\r\n");
-		btnSalir.setBounds(175, 208, 130, 23);
+		btnSalir.setBounds(174, 228, 130, 23);
 		contentPane.add(btnSalir);
+		
+		JButton btnMinar = new JButton("Minar");
+		btnMinar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new PantallaMinar().setVisible(true);
+			}
+		});
+		btnMinar.setBounds(174, 168, 130, 23);
+		contentPane.add(btnMinar);
 		cargarBlockchain();
 
 	}
@@ -206,6 +215,9 @@ public class PantallaPrincipal extends JFrame {
 						Properties prop = new Properties();
 						FileInputStream input = new FileInputStream("config.properties");
 						prop.load(input);
+						output = new FileOutputStream("config.properties");
+						prop.setProperty("blockchain", selectedFile.getAbsolutePath());
+						prop.store(output, null);
 						BlockChainPrueba.oos = new ObjectOutputStream(
 								new FileOutputStream(prop.getProperty("blockchain"), false));
 

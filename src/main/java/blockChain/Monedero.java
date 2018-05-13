@@ -29,9 +29,14 @@ public class Monedero implements Serializable{
 	private static final long serialVersionUID = -1990676464777995451L;
 	public transient PrivateKey clavePrivada;
 	public transient PublicKey clavePublica;
+	public String name;
 	
 	public HashMap<String,OutputTransaccion> UTXOs = new HashMap<String,OutputTransaccion>();
 	
+	public Monedero(String name) {
+		this.name = name;
+		generarKeyPair();
+	}
 	public Monedero() {
 		generarKeyPair();
 	}
@@ -60,6 +65,7 @@ public class Monedero implements Serializable{
 		this.clavePublica = clavePublica;
 		UTXOs = uTXOs;
 	}
+
 
 	public float getBalance(DefaultListModel<Transaccion> listModel) {
 		float total = 0;	
@@ -114,6 +120,7 @@ public class Monedero implements Serializable{
 		stream.writeObject(clavePrivada.getEncoded());
 		stream.writeObject(clavePublica.getEncoded());
 		stream.writeObject(UTXOs);
+		stream.writeObject(name);
 		
 	}
 	private void readObject(java.io.ObjectInputStream stream)
@@ -122,6 +129,7 @@ public class Monedero implements Serializable{
 		clavePrivada = fact.generatePrivate(new PKCS8EncodedKeySpec((byte[]) stream.readObject()));
 		clavePublica  = fact.generatePublic(new X509EncodedKeySpec((byte[]) stream.readObject()));
 		UTXOs = (HashMap<String, OutputTransaccion>) stream.readObject();
+		name = (String) stream.readObject();
 		
 		
 	}

@@ -5,21 +5,30 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.Security;
 import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.Scanner;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -27,6 +36,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 
+import Constantes.Constantes;
 import blockChain.BlockChainPrueba;
 import blockChain.Monedero;
 
@@ -44,10 +54,17 @@ public class PantallaPrincipal extends JFrame {
 	/**
 	 * Launch the application.
 	 */
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					try {
+						UIManager.setLookAndFeel(new com.jtattoo.plaf.mcwin.McWinLookAndFeel());
+						// UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");
+					} catch (UnsupportedLookAndFeelException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					PantallaPrincipal frame = new PantallaPrincipal();
 					frame.setVisible(true);
 				} catch (Exception e) {
@@ -55,12 +72,16 @@ public class PantallaPrincipal extends JFrame {
 				}
 			}
 		});
-	}
+	}*/
 
 	/**
 	 * Create the frame.
+	 * @throws IOException 
+	 * @throws URISyntaxException 
 	 */
-	public PantallaPrincipal() {
+	public PantallaPrincipal() throws IOException {
+		Constantes.props = new File("res/config/config.properties");
+		setResizable(false);
 		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider()); // Proveedor de seguridad
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
@@ -74,13 +95,6 @@ public class PantallaPrincipal extends JFrame {
 				System.exit(0);
 			}
 		});
-		try {
-			UIManager.setLookAndFeel(new com.jtattoo.plaf.mcwin.McWinLookAndFeel());
-			// UIManager.setLookAndFeel("com.jtattoo.plaf.mint.MintLookAndFeel");
-		} catch (UnsupportedLookAndFeelException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		setBounds(100, 100, 498, 375);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -102,7 +116,7 @@ public class PantallaPrincipal extends JFrame {
 					File selectedFile = new File(jfc.getSelectedFile().getAbsolutePath() + ".wallet");
 					try {
 						ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(selectedFile));
-						Monedero mon = new Monedero();
+						Monedero mon = new Monedero(jfc.getSelectedFile().getName());
 						oos.writeObject(mon);
 						try {
 							new PantallaMonedero(mon).setVisible(true);
@@ -180,7 +194,7 @@ public class PantallaPrincipal extends JFrame {
 
 	private void cargarBlockchain() {
 		try {
-			input = new FileInputStream("config.properties");
+			input = new FileInputStream(Constantes.props);
 			prop.load(input);
 			String ruta = prop.getProperty("blockchain");
 			if (ruta == null) {
@@ -199,11 +213,11 @@ public class PantallaPrincipal extends JFrame {
 			jfc.setFileFilter(new FileNameExtensionFilter(".blockchain", "blockchain"));
 
 			int returnValue = jfc.showOpenDialog(null);
-			// int returnValue = jfc.showSaveDialog(null);
 
 			if (returnValue == JFileChooser.APPROVE_OPTION) {
 				try {
 					File selectedFile = jfc.getSelectedFile();
+					System.out.println(selectedFile.getAbsolutePath());
 					if (selectedFile.exists()) {
 						ObjectInputStream ois = new ObjectInputStream(new FileInputStream(selectedFile));
 						BlockChainPrueba bl = (BlockChainPrueba) ois.readObject();
@@ -213,9 +227,9 @@ public class PantallaPrincipal extends JFrame {
 						BlockChainPrueba.dificultad = bl.dificultad;
 						BlockChainPrueba.transaccionMinima = bl.transaccionMinima;
 						Properties prop = new Properties();
-						FileInputStream input = new FileInputStream("config.properties");
+						FileInputStream input = new FileInputStream(Constantes.props);
 						prop.load(input);
-						output = new FileOutputStream("config.properties");
+						output = new FileOutputStream(Constantes.props);
 						prop.setProperty("blockchain", selectedFile.getAbsolutePath());
 						prop.store(output, null);
 						BlockChainPrueba.oos = new ObjectOutputStream(
@@ -223,18 +237,18 @@ public class PantallaPrincipal extends JFrame {
 
 						ois.close();
 					} else {
+						output = new FileOutputStream(Constantes.props);
+						prop.setProperty("blockchain", selectedFile.getAbsolutePath()+ ".blockchain");
+						prop.store(output, null);
 						selectedFile = new File(selectedFile.getAbsolutePath() + ".blockchain");
 						ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(selectedFile));
 						oos.writeObject(new BlockChainPrueba());
 						oos.close();
 					}
-					output = new FileOutputStream("config.properties");
+					output = new FileOutputStream(Constantes.props);
 					prop.setProperty("blockchain", selectedFile.getAbsolutePath());
 					prop.store(output, null);
 
-				} catch (FileNotFoundException e2) {
-					// TODO Auto-generated catch block
-					e2.printStackTrace();
 				} catch (IOException e2) {
 					// TODO Auto-generated catch block
 					e2.printStackTrace();

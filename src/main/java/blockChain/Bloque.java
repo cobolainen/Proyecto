@@ -64,13 +64,10 @@ public class Bloque implements Serializable {
 		return true;
 	}
 
-	public void anadirRecompensa(Transaccion t) {
-		t.generarFirma(BlockChainPrueba.coinbase.clavePrivada);
-		t.outputs.add(new OutputTransaccion(t.receptor, t.valor, t));
-		BlockChainPrueba.UTXOs.put(t.outputs.get(0).id, t.outputs.get(0));
-		t.esRecompensa = true;
+	public boolean anadirRecompensa(Transaccion t) {
 		transacciones.add(t);
 		System.out.println("Transaccion añadida correctamente al bloque");
+		return true;
 	}
 
 	private void writeObject(ObjectOutputStream stream) throws IOException {

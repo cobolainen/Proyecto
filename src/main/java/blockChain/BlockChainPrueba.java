@@ -1,24 +1,28 @@
 package blockChain;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 //import java.util.Base64;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import Constantes.Constantes;
+import Interfaz.PantallaPrincipal;
 
 public class BlockChainPrueba implements Serializable {
 
@@ -29,74 +33,12 @@ public class BlockChainPrueba implements Serializable {
 	public static ArrayList<Bloque> blockchain = new ArrayList<Bloque>();
 	public static HashMap<String, OutputTransaccion> UTXOs = new HashMap<String, OutputTransaccion>();
 	public static Queue<Transaccion> transaccionesSinMinar = new ConcurrentLinkedQueue<Transaccion>();
-	public static int dificultad = 5;
+	public static int dificultad = 9;
 	public static float transaccionMinima = 0.1f;
 	public static transient ObjectOutputStream oos;
 	public static Monedero coinbase = new Monedero();
 
-	public static void main(String[] args) throws ClassNotFoundException, FileNotFoundException, IOException {
-		// se añaden los bloques al arraylist blockchain:
-		Security.addProvider(new BouncyCastleProvider()); // Proveedor de seguridad
-
-		// Create wallets:
-		Transaccion primeraTransaccion;
-		Monedero monederoA = new Monedero();
-		Monedero monederoB = new Monedero();
-		Monedero coinbase = new Monedero();
-
-		// crea una primera transaccion,que envia 100 monedas al monederoA :
-		primeraTransaccion = new Transaccion(coinbase.clavePublica, monederoA.clavePublica, 100f, null);
-		primeraTransaccion.generarFirma(coinbase.clavePrivada); // se firma la transaccion
-		primeraTransaccion.id = "0"; // de le da el id 0
-		primeraTransaccion.outputs
-				.add(new OutputTransaccion(primeraTransaccion.receptor, primeraTransaccion.valor, primeraTransaccion)); // manually
-																														// add
-																														// the
-																														// Transactions
-																														// Output
-		UTXOs.put(primeraTransaccion.outputs.get(0).id, primeraTransaccion.outputs.get(0));
-
-		System.out.println("Creando y minando el primer bloque... ");
-		Bloque genesis = new Bloque("0");
-		genesis.anadirTransaccion(primeraTransaccion);
-		anadirBloque(genesis);
-
-		Bloque bloque1 = new Bloque(genesis.hash);
-		System.out.println("\nEl balance del monedero A es: " + monederoA.getBalance());
-		System.out.println("\nEl monedero A esta intentando enviar fondos (40) al monedero B...");
-		bloque1.anadirTransaccion(monederoA.enviarFondos(monederoB.clavePublica, 40f));
-		anadirBloque(bloque1);
-		System.out.println("\nEl balance del monedero A es: " + monederoA.getBalance());
-		System.out.println("El balance del monedero B es: " + monederoB.getBalance());
-
-		Bloque bloque2 = new Bloque(bloque1.hash);
-		System.out.println("\nMonedero A intentando enviar fondos al monedero B (1000)...");
-		bloque2.anadirTransaccion(monederoA.enviarFondos(monederoB.clavePublica, 1000f));
-		anadirBloque(bloque2);
-		System.out.println("\nEl balance del monedero A es: " + monederoA.getBalance());
-		System.out.println("El balance del monedero B es: " + monederoB.getBalance());
-
-		Bloque bloque3 = new Bloque(bloque2.hash);
-		System.out.println("\nEl monedero B esta intentando enviar fondos al monedero A (20)...");
-		bloque3.anadirTransaccion(monederoB.enviarFondos(monederoA.clavePublica, 20));
-		System.out.println("\nEl balance del monedero A es: " + monederoA.getBalance());
-		System.out.println("El balance del monedero B es: " + monederoB.getBalance());
-		anadirBloque(bloque3);
-		ObjectOutputStream oosbl = new ObjectOutputStream(
-				new FileOutputStream("C:\\Users\\ccobos\\Desktop\\blockchain.blockchain"));
-		ObjectOutputStream oosa = new ObjectOutputStream(
-				new FileOutputStream("C:\\Users\\ccobos\\Desktop\\monederoA.wallet"));
-		ObjectOutputStream oosb = new ObjectOutputStream(
-				new FileOutputStream("C:\\Users\\ccobos\\Desktop\\monederoB.wallet"));
-		oosbl.writeObject(new BlockChainPrueba());
-		oosa.writeObject(monederoA);
-		oosb.writeObject(monederoB);
-		oosbl.close();
-		oosa.close();
-		oosb.close();
-		cadenaEsValida();
-
-	}
+	
 
 	public static Boolean cadenaEsValida() {
 		Bloque bloqueActual;
@@ -182,9 +124,15 @@ public class BlockChainPrueba implements Serializable {
 	public static void anadirBloque(Bloque nuevoBloque) throws FileNotFoundException, IOException {
 		nuevoBloque.minarBloque(dificultad);
 		blockchain.add(nuevoBloque);
+		for ( Transaccion t : nuevoBloque.transacciones) {
+			if (t.id.equals("0")) {
+					BlockChainPrueba.UTXOs.put(t.outputs.get(0).id, t.outputs.get(0));
+			}
+			
+		}
 		if (oos == null) {
 			Properties prop = new Properties();
-			FileInputStream input = new FileInputStream("config.properties");
+			FileInputStream input = new FileInputStream(Constantes.props);
 			prop.load(input);
 			oos = new ObjectOutputStream(new FileOutputStream(prop.getProperty("blockchain"), false));
 		}
@@ -212,7 +160,7 @@ public class BlockChainPrueba implements Serializable {
 
 	public BlockChainPrueba() throws FileNotFoundException, IOException {
 		Properties prop = new Properties();
-		FileInputStream input = new FileInputStream("config.properties");
+		FileInputStream input = new FileInputStream(Constantes.props);
 		prop.load(input);
 		oos = new ObjectOutputStream(new FileOutputStream(prop.getProperty("blockchain"), false));
 
@@ -220,10 +168,12 @@ public class BlockChainPrueba implements Serializable {
 
 	public static void darRecompensa(String clave)
 			throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
-ArrayList<InputTransaccion> inputs = new ArrayList<InputTransaccion>();
-		
-		
-		Transaccion t = new Transaccion(coinbase.clavePublica, StringUtil.getPublicKeyDeString(clave) , 12, inputs);
+		Transaccion t = new Transaccion(coinbase.clavePublica, StringUtil.getPublicKeyDeString(clave), 12f, null);
+		t.generarFirma(coinbase.clavePrivada); // se firma la transaccion
+		t.id = "0"; // de le da el id 0
+		t.outputs.add(new OutputTransaccion(t.receptor, t.valor, t)); 																									
+		t.esRecompensa = true;
 		transaccionesSinMinar.add(t);
 	}
+	
 }

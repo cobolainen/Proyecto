@@ -60,6 +60,7 @@ public class PantallaMonedero extends JFrame {
 	 * @throws UnsupportedLookAndFeelException
 	 */
 	public PantallaMonedero(Monedero mon) throws UnsupportedLookAndFeelException {
+		setResizable(false);
 
 		this.monedero = mon;
 		inicializar();

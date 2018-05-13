@@ -22,6 +22,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
 
 public class PantallaMinar extends JFrame {
 
@@ -35,8 +37,10 @@ public class PantallaMinar extends JFrame {
 	private JButton btnParar;
 	private JButton btnMinar;
 	private boolean minando;
+	private JComboBox comboDif;
 
 	public PantallaMinar() {
+		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
@@ -54,10 +58,10 @@ public class PantallaMinar extends JFrame {
 		contentPane.setLayout(null);
 
 		JLabel lblMonedero = new JLabel("Monedero");
-		lblMonedero.setBounds(73, 40, 119, 25);
+		lblMonedero.setBounds(35, 51, 119, 25);
 		contentPane.add(lblMonedero);
 		tfMonedero = new JTextField();
-		tfMonedero.setBounds(202, 40, 261, 25);
+		tfMonedero.setBounds(164, 51, 261, 25);
 		contentPane.add(tfMonedero);
 		tfMonedero.setColumns(10);
 
@@ -65,6 +69,7 @@ public class PantallaMinar extends JFrame {
 		btnMinar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				minando = true;
+				BlockChainPrueba.dificultad = Integer.parseInt(comboDif.getSelectedItem().toString());
 				t = new Thread(new Runnable() {
 
 					public void run() {
@@ -78,13 +83,15 @@ public class PantallaMinar extends JFrame {
 											.get(BlockChainPrueba.blockchain.size() - 1).hash);
 								}
 								Transaccion t = BlockChainPrueba.transaccionesSinMinar.poll();
-								if (t != null) {
-									if (t.esRecompensa) {
-										b.anadirRecompensa(t);
-									} else {
-										b.anadirTransaccion(t);
-									}
-								}
+								anadirTransaccion(b,t);
+								Transaccion t1 = BlockChainPrueba.transaccionesSinMinar.poll();
+								anadirTransaccion(b,t1);
+								Transaccion t2 = BlockChainPrueba.transaccionesSinMinar.poll();
+								anadirTransaccion(b,t2);
+								Transaccion t3 = BlockChainPrueba.transaccionesSinMinar.poll();
+								anadirTransaccion(b,t3);
+								Transaccion t4 = BlockChainPrueba.transaccionesSinMinar.poll();
+								anadirTransaccion(b,t4);
 
 								BlockChainPrueba.anadirBloque(b);
 								BlockChainPrueba.darRecompensa(tfMonedero.getText());
@@ -97,14 +104,17 @@ public class PantallaMinar extends JFrame {
 									JOptionPane.ERROR_MESSAGE);
 						}
 					}
+
+					
 				});
 				t.start();
 				btnMinar.setEnabled(false);
 				tfMonedero.setEnabled(false);
 				btnParar.setEnabled(true);
+				comboDif.setEnabled(false);
 			}
 		});
-		btnMinar.setBounds(68, 124, 124, 25);
+		btnMinar.setBounds(35, 178, 124, 25);
 		contentPane.add(btnMinar);
 
 		btnParar = new JButton("Parar");
@@ -114,10 +124,30 @@ public class PantallaMinar extends JFrame {
 				btnMinar.setEnabled(true);
 				tfMonedero.setEnabled(true);
 				btnParar.setEnabled(false);
+				comboDif.setEnabled(true);
 			}
 		});
-		btnParar.setBounds(303, 125, 124, 25);
+		btnParar.setBounds(257, 178, 124, 25);
 		contentPane.add(btnParar);
+		
+		JLabel lblDificultad = new JLabel("Dificultad");
+		lblDificultad.setBounds(35, 120, 62, 14);
+		contentPane.add(lblDificultad);
+		
+		comboDif = new JComboBox();
+		comboDif.setModel(new DefaultComboBoxModel(new String[] {"5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"}));
+		comboDif.setBounds(164, 117, 62, 25);
+		contentPane.add(comboDif);
 
+	}
+	private void anadirTransaccion(Bloque b, Transaccion t) {
+		if (t != null) {
+			if (t.esRecompensa) {
+				b.anadirRecompensa(t);
+				
+			} else {
+				b.anadirTransaccion(t);
+			}
+		}
 	}
 }

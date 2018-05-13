@@ -118,7 +118,7 @@ public class Transaccion implements Serializable{
 		return total;
 	}
 	
-	private String calularHash() {
+	public String calularHash() {
 		secuencia++; //incrementa la secuencia para evitar dos transacciones iguales con el mismo hash
 		return StringUtil.aplicarSha256(
 				StringUtil.getStringDeclave(emisor) +

@@ -383,7 +383,6 @@ public class Pantalla extends JFrame {
 			BlockChainPrueba.dificultad = bl.dificultad;
 			BlockChainPrueba.transaccionMinima = bl.transaccionMinima;
 		} catch (FileNotFoundException e1) {
-			System.out.println("No esxiste la blockchain");
 			input = new FileInputStream(Constantes.props);
 			prop.load(input);
 			File file = new File(prop.getProperty("blockchain"));

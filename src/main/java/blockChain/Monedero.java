@@ -10,6 +10,7 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -34,6 +35,7 @@ public class Monedero implements Serializable{
 	public HashMap<String,OutputTransaccion> UTXOs = new HashMap<String,OutputTransaccion>();
 	
 	public Monedero(String name) {
+		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider()); // Proveedor de seguridad
 		this.name = name;
 		generarKeyPair();
 	}

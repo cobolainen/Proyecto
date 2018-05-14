@@ -37,6 +37,7 @@ public class BlockChainPrueba implements Serializable {
 	public static float transaccionMinima = 0.1f;
 	public static transient ObjectOutputStream oos;
 	public static Monedero coinbase = new Monedero();
+	public static boolean minando;
 
 	
 
@@ -158,13 +159,6 @@ public class BlockChainPrueba implements Serializable {
 		coinbase = (Monedero) stream.readObject();
 	}
 
-	public BlockChainPrueba() throws FileNotFoundException, IOException {
-		Properties prop = new Properties();
-		FileInputStream input = new FileInputStream(Constantes.props);
-		prop.load(input);
-		oos = new ObjectOutputStream(new FileOutputStream(prop.getProperty("blockchain"), false));
-
-	}
 
 	public static void darRecompensa(String clave)
 			throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -174,6 +168,19 @@ public class BlockChainPrueba implements Serializable {
 		t.outputs.add(new OutputTransaccion(t.receptor, t.valor, t)); 																									
 		t.esRecompensa = true;
 		transaccionesSinMinar.add(t);
+		try {
+			Properties prop = new Properties();
+			FileInputStream input = new FileInputStream(Constantes.props);
+			prop.load(input);
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(prop.getProperty("blockchain"),false));
+			oos.writeObject(new BlockChainPrueba());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 }

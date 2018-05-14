@@ -1,10 +1,17 @@
 package Interfaz;
 
+import java.awt.Image;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
+import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
 
+import javax.imageio.ImageIO;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -24,27 +31,33 @@ public class PanelMinar extends JPanel {
 	private JTextField tfMonedero;
 	private JButton btnParar;
 	private JButton btnMinar;
-	private boolean minando;
 	private JComboBox comboDif;
 	private Thread t;
 
 	public PanelMinar() {
 		inicializar();
 		setVisible(true);
+		inicializarHilo();
+		if (BlockChainPrueba.minando==false) {
+			pararMinar();
+			
+		}else {
+			empezarMinar();
+		}
 
 	}
 
 	public void inicializar() {
 
-		setBounds(100, 100, 562, 455);
+		setBounds(0, 121, 972, 504);
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		setLayout(null);
 
 		JLabel lblMonedero = new JLabel("Monedero");
-		lblMonedero.setBounds(117, 53, 119, 25);
+		lblMonedero.setBounds(299, 119, 119, 25);
 		add(lblMonedero);
 		tfMonedero = new JTextField();
-		tfMonedero.setBounds(246, 53, 261, 25);
+		tfMonedero.setBounds(428, 119, 261, 25);
 		add(tfMonedero);
 		tfMonedero.setColumns(10);
 
@@ -56,17 +69,9 @@ public class PanelMinar extends JPanel {
 				empezarMinar();
 			}
 
-			public void empezarMinar() {
-				minando = true;
-				BlockChainPrueba.dificultad = Integer.parseInt(comboDif.getSelectedItem().toString());
-				t.start();
-				btnMinar.setEnabled(false);
-				tfMonedero.setEnabled(false);
-				btnParar.setEnabled(true);
-				comboDif.setEnabled(false);
-			}
+			
 		});
-		btnMinar.setBounds(117, 180, 124, 25);
+		btnMinar.setBounds(299, 246, 124, 25);
 		add(btnMinar);
 
 		btnParar = new JButton("Parar");
@@ -75,17 +80,17 @@ public class PanelMinar extends JPanel {
 				pararMinar();
 			}
 		});
-		btnParar.setBounds(339, 180, 124, 25);
+		btnParar.setBounds(521, 246, 124, 25);
 		add(btnParar);
 
 		JLabel lblDificultad = new JLabel("Dificultad");
-		lblDificultad.setBounds(117, 122, 62, 14);
+		lblDificultad.setBounds(299, 188, 62, 14);
 		add(lblDificultad);
 
 		comboDif = new JComboBox();
 		comboDif.setModel(
 				new DefaultComboBoxModel(new String[] { "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15" }));
-		comboDif.setBounds(246, 119, 62, 25);
+		comboDif.setBounds(428, 185, 62, 25);
 		add(comboDif);
 	}
 
@@ -99,9 +104,18 @@ public class PanelMinar extends JPanel {
 			}
 		}
 	}
+	public void empezarMinar() {
+		BlockChainPrueba.minando = true;
+		BlockChainPrueba.dificultad = Integer.parseInt(comboDif.getSelectedItem().toString());
+		t.start();
+		btnMinar.setEnabled(false);
+		tfMonedero.setEnabled(false);
+		btnParar.setEnabled(true);
+		comboDif.setEnabled(false);
+	}
 
 	public void pararMinar() {
-		minando = false;
+		BlockChainPrueba.minando = false;
 		btnMinar.setEnabled(true);
 		tfMonedero.setEnabled(true);
 		btnParar.setEnabled(false);
@@ -113,7 +127,10 @@ public class PanelMinar extends JPanel {
 
 			public void run() {
 				try {
-					while (minando) {
+					SystemTray st = SystemTray.getSystemTray();
+					TrayIcon icon = new TrayIcon(ImageIO.read(new File("imagenes/image.png")).getScaledInstance(st.getTrayIconSize().width,st.getTrayIconSize().height, BufferedImage.SCALE_FAST ));
+					st.add(icon);
+					while (BlockChainPrueba.minando) {
 						Bloque b;
 						if (BlockChainPrueba.transaccionesSinMinar.size() == 0) {
 							b = new Bloque("0");
@@ -134,6 +151,7 @@ public class PanelMinar extends JPanel {
 
 						BlockChainPrueba.anadirBloque(b);
 						BlockChainPrueba.darRecompensa(tfMonedero.getText());
+						icon.displayMessage("Boque minado!!", "Has recibido 12 cbc", MessageType.NONE);
 
 					}
 				} catch (Exception e) {

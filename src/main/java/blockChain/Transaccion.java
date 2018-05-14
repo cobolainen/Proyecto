@@ -135,6 +135,7 @@ public class Transaccion implements Serializable{
 		stream.writeObject(inputs);
 		stream.writeObject(outputs);
 		stream.writeBoolean(esRecompensa);
+		stream.writeLong(timestamp);;
 	}
 	private void readObject(java.io.ObjectInputStream stream) throws ClassNotFoundException, IOException, InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
 		KeyFactory fact = KeyFactory.getInstance("ECDSA", "BC");
@@ -146,5 +147,6 @@ public class Transaccion implements Serializable{
 		inputs = (ArrayList<InputTransaccion>) stream.readObject();
 		outputs = (ArrayList<OutputTransaccion>) stream.readObject();
 		esRecompensa = stream.readBoolean();
+		timestamp = stream.readLong();
 	}
 }

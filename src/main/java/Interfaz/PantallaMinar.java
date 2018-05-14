@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.Security;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -40,6 +41,7 @@ public class PantallaMinar extends JFrame {
 	private JComboBox comboDif;
 
 	public PantallaMinar() {
+		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider()); // Proveedor de seguridad
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
@@ -92,9 +94,8 @@ public class PantallaMinar extends JFrame {
 								anadirTransaccion(b,t3);
 								Transaccion t4 = BlockChainPrueba.transaccionesSinMinar.poll();
 								anadirTransaccion(b,t4);
-
-								BlockChainPrueba.anadirBloque(b);
 								BlockChainPrueba.darRecompensa(tfMonedero.getText());
+								BlockChainPrueba.anadirBloque(b);
 								JOptionPane.showMessageDialog(contentPane, "Bloque minado!!. Has recibido 12 cbc");
 
 							}

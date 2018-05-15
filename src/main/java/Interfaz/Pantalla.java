@@ -376,6 +376,7 @@ public class Pantalla extends JFrame {
 		}
 
 	}
+	//hola
 
 	private void cargarBlockchain() throws IOException, ClassNotFoundException {
 		Properties prop = new Properties();

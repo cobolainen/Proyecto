@@ -1,28 +1,22 @@
 package blockChain;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 //import java.util.Base64;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import Constantes.Constantes;
-import Interfaz.PantallaPrincipal;
 
 public class BlockChainPrueba implements Serializable {
 
@@ -37,6 +31,7 @@ public class BlockChainPrueba implements Serializable {
 	public static float transaccionMinima = 0.1f;
 	public static transient ObjectOutputStream oos;
 	public static Monedero coinbase = new Monedero();
+	public static boolean minando;
 
 	
 
@@ -158,13 +153,6 @@ public class BlockChainPrueba implements Serializable {
 		coinbase = (Monedero) stream.readObject();
 	}
 
-	public BlockChainPrueba() throws FileNotFoundException, IOException {
-		Properties prop = new Properties();
-		FileInputStream input = new FileInputStream(Constantes.props);
-		prop.load(input);
-		oos = new ObjectOutputStream(new FileOutputStream(prop.getProperty("blockchain"), false));
-
-	}
 
 	public static void darRecompensa(String clave)
 			throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -174,6 +162,19 @@ public class BlockChainPrueba implements Serializable {
 		t.outputs.add(new OutputTransaccion(t.receptor, t.valor, t)); 																									
 		t.esRecompensa = true;
 		transaccionesSinMinar.add(t);
+		try {
+			Properties prop = new Properties();
+			FileInputStream input = new FileInputStream(Constantes.props);
+			prop.load(input);
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(prop.getProperty("blockchain"),false));
+			oos.writeObject(new BlockChainPrueba());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 }
